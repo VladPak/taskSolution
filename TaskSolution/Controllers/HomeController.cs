@@ -57,8 +57,10 @@ namespace TaskSolution.Controllers
         }
 
         [HttpPost]
-        public ActionResult Index(EmployeeModel empModel)
+        public ActionResult Index(EmployeeModel empModel, int? page)
         {
+            empModel.CurrentPage = page ?? 1;
+
             var file = Request.Files["fileToImport"];
 
             if (file == null)
@@ -117,7 +119,13 @@ namespace TaskSolution.Controllers
             }
 
             ViewBag.Result = errorMessage;
-            empModel.Employees = GetDataToView();
+
+            int pageSize = 4;
+            var pageIndex = page.HasValue ? Convert.ToInt32(page) : 1;
+            empModel.TotalPages = (int)Math.Ceiling(((double)employees.Count()) / ((double)pageSize));
+            //empModel.Employees = employees.Select(MapToModel).Skip(pageSize * (pageIndex - 1)).Take(pageSize).ToList();
+
+            empModel.Employees = GetDataToView().Select(MapToModel).Skip(pageSize * (pageIndex - 1)).Take(pageSize).ToList(); ;
 
             return View(empModel);
         }
